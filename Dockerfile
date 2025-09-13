@@ -31,6 +31,18 @@ COPY --chown=www-data:www-data . /var/www/html
 # Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Create necessary directories and set permissions
+RUN mkdir -p /var/www/html/runtime/sessions \
+    && mkdir -p /var/www/html/runtime/cache \
+    && mkdir -p /var/www/html/runtime/logs \
+    && chown -R www-data:www-data /var/www/html/runtime \
+    && chmod -R 755 /var/www/html/runtime
+
+# Create session directory with proper permissions
+RUN mkdir -p /tmp/sessions \
+    && chown -R www-data:www-data /tmp/sessions \
+    && chmod -R 755 /tmp/sessions
+
 # Change current user to www
 USER www-data
 
