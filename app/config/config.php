@@ -79,7 +79,7 @@ $config['ENVIRONMENT']             = 'development';
 | WARNING: You MUST set this value!
 |
 */
-$config['base_url'] 				= 'https://crud-lavalust5.onrender.com';
+$config['base_url'] 				= 'https://punzalan-clifford.onrender.com';
 
 /*
 |--------------------------------------------------------------------------
