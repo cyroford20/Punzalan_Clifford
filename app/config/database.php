@@ -61,9 +61,9 @@ $database['main'] = array(
     'driver'	=> 'mysql',
     'hostname'	=> getenv('DB_HOST') ?: 'sql12.freesqldatabase.com',
     'port'		=> getenv('DB_PORT') ?: '3306',
-    'username'	=> getenv('DB_USER') ?: 'sql12798459',
-    'password'	=> getenv('DB_PASS') ?: 'XuZX71VJYD',
-    'database'	=> getenv('DB_NAME') ?: 'sql12798459',
+    'username'	=> getenv('DB_USER') ?: 'sql12799948',
+    'password'	=> getenv('DB_PASS') ?: '7rVZplLkP5',
+    'database'	=> getenv('DB_NAME') ?: 'sql12799948',
     'charset'	=> 'utf8mb4',
     'dbprefix'	=> '',
     // Optional for SQLite
