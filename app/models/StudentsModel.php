@@ -124,4 +124,34 @@ class StudentsModel extends Model
     {
         return $this->db->table($this->table)->insert($data);
     }
+
+    public function get_user_records($user_id, $limit_clause, $search = null)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE {$this->soft_delete_column} IS NULL AND id = ?";
+        $params = [$user_id];
+        if ($search) {
+            $sql .= " AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)";
+            $params = array_merge($params, ["%{$search}%", "%{$search}%", "%{$search}%"]);
+        }
+        $sql .= " ORDER BY id ASC {$limit_clause}";
+        return $this->db->raw($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function count_user_records($user_id, $search = null)
+    {
+        $sql = "SELECT COUNT(id) AS total FROM {$this->table} WHERE {$this->soft_delete_column} IS NULL AND id = ?";
+        $params = [$user_id];
+        if ($search) {
+            $sql .= " AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)";
+            $params = array_merge($params, ["%{$search}%", "%{$search}%", "%{$search}%"]);
+        }
+        $row = $this->db->raw($sql, $params)->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['total'] : 0;
+    }
+
+    public function is_admin($user_id)
+    {
+        $user = $this->db->table($this->table)->where('id', $user_id)->get();
+        return $user && isset($user['role']) && $user['role'] === 'admin';
+    }
 }
