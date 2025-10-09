@@ -187,13 +187,15 @@
             <?php endif; ?>
     </p>
 
-    <!-- Search -->
+    <!-- Search (Admins only) -->
+    <?php if (!empty($is_admin)): ?>
     <form method="get" action="/students/get-all">
         <input type="hidden" name="show" value="<?= $show_deleted ? 'deleted' : 'active' ?>">
         <input type="text" name="search" placeholder="Search..." value="<?= htmlspecialchars($search ?? '') ?>">
         <input type="hidden" name="per_page" value="<?= $per_page ?>">
         <button type="submit">Search</button>
     </form>
+    <?php endif; ?>
 
     <div class="table-card">
     <table>
