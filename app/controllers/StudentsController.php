@@ -28,6 +28,9 @@ class StudentsController extends Controller
             redirect('auth/login');
         }
 
+        // Load StudentsModel
+        $this->call->model('StudentsModel');
+
         $this->pagination->set_theme('custom');
         $this->pagination->set_custom_classes([
             'nav' => 'pagination-nav',
@@ -48,16 +51,29 @@ class StudentsController extends Controller
         $show_deleted = isset($_GET['show']) && $_GET['show'] === 'deleted';
 
         $offset = ($page - 1) * $per_page;
+        $user_id = $this->session->userdata('user_id');
+        $is_admin = $this->StudentsModel->is_admin($user_id);
         $limit_clause = "LIMIT {$offset}, {$per_page}";
 
         if ($show_deleted) {
-            $total_rows = $this->StudentsModel->count_deleted_records($search);
-            $base_url   = '/students/get-all?show=deleted';
-            $records    = $this->StudentsModel->get_deleted_with_pagination($limit_clause, $search);
+            if ($is_admin) {
+                $total_rows = $this->StudentsModel->count_deleted_records($search);
+                $records = $this->StudentsModel->get_deleted_with_pagination($limit_clause, $search);
+                $base_url = '/students/get-all?show=deleted';
+            } else {
+                // Non-admins cannot view deleted records
+                redirect('students/get-all');
+                return;
+            }
         } else {
-            $total_rows = $this->StudentsModel->count_all_records($search);
-            $base_url   = '/students/get-all';
-            $records    = $this->StudentsModel->get_records_with_pagination($limit_clause, $search);
+            if ($is_admin) {
+                $total_rows = $this->StudentsModel->count_all_records($search);
+                $records = $this->StudentsModel->get_records_with_pagination($limit_clause, $search);
+            } else {
+                $total_rows = $this->StudentsModel->count_user_records($user_id, $search);
+                $records = $this->StudentsModel->get_user_records($user_id, $limit_clause, $search);
+            }
+            $base_url = '/students/get-all';
         }
 
         $pagination_data = $this->pagination->initialize($total_rows, $per_page, $page, $base_url, 5);
@@ -71,7 +87,9 @@ class StudentsController extends Controller
             'pagination_links' => $this->pagination->paginate(),
             'search'           => $search,
             'show_deleted'     => $show_deleted,
-            'upload_url'       => $this->upload_url
+            'upload_url'       => $this->upload_url,
+            'is_admin'         => $is_admin,
+            'user_id'          => $user_id
         ];
 
         $this->call->view('ui/get_all', $data);
@@ -140,6 +158,16 @@ public function create()
     {
         $this->call->library('form_validation');
         $contents = $this->StudentsModel->find($id);
+        
+        // Check permissions
+        $user_id = $this->session->userdata('user_id');
+        $is_admin = $this->StudentsModel->is_admin($user_id);
+        
+        // Only admin can edit all records, users can only edit their own
+        if (!$is_admin && $contents['id'] != $user_id) {
+            redirect('students/get-all');
+            return;
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->form_validation->name('first_name')->required();
@@ -185,6 +213,15 @@ public function create()
     /** SOFT DELETE */
     public function delete($id)
     {
+        // Check permissions - only admin can delete
+        $user_id = $this->session->userdata('user_id');
+        $is_admin = $this->StudentsModel->is_admin($user_id);
+        
+        if (!$is_admin) {
+            redirect('students/get-all');
+            return;
+        }
+        
         $this->StudentsModel->soft_delete($id);
         redirect('students/get-all');
     }
@@ -192,6 +229,15 @@ public function create()
     /** HARD DELETE */
     public function hard_delete($id)
     {
+        // Check permissions - only admin can hard delete
+        $user_id = $this->session->userdata('user_id');
+        $is_admin = $this->StudentsModel->is_admin($user_id);
+        
+        if (!$is_admin) {
+            redirect('students/get-all');
+            return;
+        }
+        
         $this->StudentsModel->hard_delete($id);
         redirect('students/get-all?show=deleted');
     }
@@ -199,6 +245,13 @@ public function create()
     /** RESTORE */
     public function restore($id)
     {
+        // Only admin can restore
+        $user_id = $this->session->userdata('user_id');
+        $is_admin = $this->StudentsModel->is_admin($user_id);
+        if (!$is_admin) {
+            redirect('students/get-all');
+            return;
+        }
         $this->StudentsModel->restore($id);
         redirect('students/get-all?show=deleted');
     }

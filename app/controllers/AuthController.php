@@ -12,6 +12,7 @@ class AuthController extends Controller {
         parent::__construct();
          $this->call->library('session');
          $this->call->library('form_validation');
+         $this->call->model('StudentsModel');
     }
 
     /** LOGIN */
@@ -31,6 +32,12 @@ class AuthController extends Controller {
                     if ($user['password'] === $password) { // TIP: gawing password_hash() later
                         $this->session->set_userdata('logged_in', true);
                         $this->session->set_userdata('user_id', $user['id']);
+                        $this->session->set_userdata('email', $user['email']);
+                        // Determine role: prefer DB role if present, else fallback to ADMIN_EMAIL env
+                        $isAdminByDb = (isset($user['role']) && $user['role'] === 'admin');
+                        $adminEmail = getenv('ADMIN_EMAIL') ?: null;
+                        $isAdminByEnv = ($adminEmail && strtolower($adminEmail) === strtolower($user['email']));
+                        $this->session->set_userdata('role', ($isAdminByDb || $isAdminByEnv) ? 'admin' : 'user');
                         redirect('students/get-all');
                         return;
                     } else {
@@ -71,7 +78,8 @@ class AuthController extends Controller {
                     'first_name' => $_POST['first_name'],
                     'last_name'  => $_POST['last_name'],
                     'email'      => $email,
-                    'password'   => $password
+                    'password'   => $password,
+                    'role'       => 'user'
                 ]);
 
                 redirect('auth/login');

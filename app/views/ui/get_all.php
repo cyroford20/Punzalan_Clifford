@@ -170,17 +170,21 @@
         <h2>Students List</h2>
 
     <p>
-        <a href="/students/create">➕ Add New Student</a> | 
+        <?php if (!empty($is_admin)): ?>
+            <a href="/students/create">➕ Add New Student</a> |
+        <?php endif; ?>
         <a href="/auth/logout">🚪 Logout</a>
     </p>
 
     <!-- Toggle Active / Deleted -->
     <p>
-        <?php if (!empty($show_deleted)): ?>
-            <a href="/students/get-all">👥 Show Active Students</a>
-        <?php else: ?>
-            <a href="/students/get-all?show=deleted">🗑️ Show Deleted Students</a>
-        <?php endif; ?>
+            <?php if (!empty($is_admin)): ?>
+                <?php if (!empty($show_deleted)): ?>
+                    <a href="/students/get-all">👥 Show Active Students</a>
+                <?php else: ?>
+                    <a href="/students/get-all?show=deleted">🗑️ Show Deleted Students</a>
+                <?php endif; ?>
+            <?php endif; ?>
     </p>
 
     <!-- Search -->
@@ -215,12 +219,19 @@
                         <td><?= htmlspecialchars($r['first_name'] . ' ' . $r['last_name']) ?></td>
                         <td><?= htmlspecialchars($r['email']) ?></td>
                         <td>
-                            <?php if (empty($show_deleted)): ?>
-                                <a class="btn edit" href="/students/update/<?= $r['id'] ?>">📝 Edit</a>
-                                <a class="btn delete" href="/students/delete/<?= $r['id'] ?>" onclick="return confirm('Delete student?')">🗑️ Delete</a>
+                            <?php if (!empty($is_admin)): ?>
+                                <?php if (empty($show_deleted)): ?>
+                                    <a class="btn edit" href="/students/update/<?= $r['id'] ?>">📝 Edit</a>
+                                    <a class="btn delete" href="/students/delete/<?= $r['id'] ?>" onclick="return confirm('Delete student?')">🗑️ Delete</a>
+                                <?php else: ?>
+                                    <a class="btn restore" href="/students/restore/<?= $r['id'] ?>">♻️ Restore</a>
+                                    <a class="btn hard-delete" href="/students/hard_delete/<?= $r['id'] ?>" onclick="return confirm('Permanently delete this student?')">❌ Hard Delete</a>
+                                <?php endif; ?>
                             <?php else: ?>
-                                <a class="btn restore" href="/students/restore/<?= $r['id'] ?>">♻️ Restore</a>
-                                <a class="btn hard-delete" href="/students/hard_delete/<?= $r['id'] ?>" onclick="return confirm('Permanently delete this student?')">❌ Hard Delete</a>
+                                <?php if (empty($show_deleted)): ?>
+                                    <!-- Users cannot edit/delete; optionally show 'View' only -->
+                                    <span style="color:#6b7280;">View only</span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                     </tr>
