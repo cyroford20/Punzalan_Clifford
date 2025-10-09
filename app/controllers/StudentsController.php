@@ -52,7 +52,7 @@ class StudentsController extends Controller
 
         $offset = ($page - 1) * $per_page;
         $user_id = $this->session->userdata('user_id');
-        $is_admin = $this->StudentsModel->is_admin($user_id);
+        $is_admin = ($this->session->userdata('role') === 'admin');
         $limit_clause = "LIMIT {$offset}, {$per_page}";
 
         if ($show_deleted) {
@@ -161,7 +161,7 @@ public function create()
         
         // Check permissions
         $user_id = $this->session->userdata('user_id');
-        $is_admin = $this->StudentsModel->is_admin($user_id);
+        $is_admin = ($this->session->userdata('role') === 'admin');
         
         // Only admin can edit all records, users can only edit their own
         if (!$is_admin && $contents['id'] != $user_id) {
@@ -215,7 +215,7 @@ public function create()
     {
         // Check permissions - only admin can delete
         $user_id = $this->session->userdata('user_id');
-        $is_admin = $this->StudentsModel->is_admin($user_id);
+        $is_admin = ($this->session->userdata('role') === 'admin');
         
         if (!$is_admin) {
             redirect('students/get-all');
@@ -231,7 +231,7 @@ public function create()
     {
         // Check permissions - only admin can hard delete
         $user_id = $this->session->userdata('user_id');
-        $is_admin = $this->StudentsModel->is_admin($user_id);
+        $is_admin = ($this->session->userdata('role') === 'admin');
         
         if (!$is_admin) {
             redirect('students/get-all');
